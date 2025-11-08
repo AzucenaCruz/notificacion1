@@ -1,1 +1,30 @@
 
+name: Deploy servicio Notificación
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Conectarse al VPS y desplegar Notificación
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ~/TestLD/docker-notificacion
+            git pull origin main
+            echo "Código notificación actualizado"
+
+            docker-compose -f ~/TestLD/docker-compose.yml build notificacion
+            docker-compose -f ~/TestLD/docker-compose.yml up -d --no-deps notificacion
+            echo "Notificación desplegada sin reiniciar MySQL ni Cliente"
